@@ -1,0 +1,104 @@
+<?php
+
+class database
+{
+
+    //declaring the variables..
+    private $host = 'localhost';
+    private $user = 'root';
+    private $pass = '';
+    private $db_name = 'bollywooddb';
+
+    private $result = array();
+    private $mysqli = "";
+    private $conn = false;
+
+    //to connect the database ..
+    public function __construct()
+    {
+        // if there is no connection at all...
+        if (!$this->conn) {
+            $this->mysqli = new mysqli($this->host, $this->user, $this->pass, $this->db_name);
+            $this->conn = true;
+
+            //if some error occurs
+            if ($this->mysqli->connect_error) {
+                array_push($this->result, $this->mysqli->connect_error);
+                return false;
+            } // if there is some connection...
+            else {
+                return true;
+            }
+        }
+    }
+    //function to insert into database...
+    public function insert($table, $params = array())
+    {
+
+        if ($this->tableExists($table)) {
+            $table_columns = implode(', ', array_keys($params));
+            $table_value = implode("', '", $params);
+            $sql = "INSERT INTO $table ($table_columns) VALUES ('$table_value')";
+
+            if($this->mysqli->query($sql)){
+                array_push($this->result, $this->mysqli->insert_id);
+                return true;
+            }
+            else{
+                array_push($this->result, $this->mysqli->error);
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    //function to update inside database...
+    public function update($table, $params=array(),$where= null)
+    {
+        if($this->tableExists($table)){
+            // $sql= "UPDATE $table SET"
+        }
+        else {
+            return false;
+        }
+    }
+
+    //function to delete from databse...
+    public function delete()
+    {
+    }
+
+    //fuction to destroy or remove the connection....
+    public function __destruct()
+    {
+        if ($this->conn) {
+            if ($this->mysqli->close()) {
+                $this->conn = false;
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    private function tableExists($table)
+    {
+        $sql = "SHOW TABLES FROM $this->db_name LIKE $table";
+        $tableIndb = $this->mysqli->query($sql);
+
+        if ($tableIndb) {
+            if ($tableIndb->num_rows == 1) {
+                return true;
+            } else {
+                array_push($this->result, $table . "doesnot exist");
+                return false;
+            }
+        }
+    }
+
+    public function getResult(){
+            $val= $this->result;
+            $this->result= array();
+            return $val;
+    }
+}
